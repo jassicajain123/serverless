@@ -1,0 +1,75 @@
+service: my-test-service-0113
+frameworkVersion: "2"
+plugins:
+  - serverless-offline
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  lambdaHashingVersion: 20201221
+  region: ap-south-1
+  stage: dev
+  iam:
+    role:
+      statements:
+        - Effect: "Allow" 
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource: 
+            -"arn:aws:dynamodb:${self:provider.region}:*:table/Content-Asset3" 
+            -"arn:aws:dynamodb:${self:provider.region}:*:table/Content-Asset3/index/*"
+functions:
+  create:
+    handler: handler.create
+    events:
+      - http:
+          path: create
+          method: post
+  list:
+    handler: handler.list
+    events:
+      - http:
+          path: list
+          method: get
+  get:
+    handler: handler.get
+    events:
+      - http:
+          path: get/{studentID}
+          method: get
+
+  delete:
+    handler: handler.delete
+    events:
+      - http:
+          path: delete/{studentID}
+          method: delete
+  
+  update:
+    handler: handler.update
+    events:
+      - http:
+          path: update/{studentID}
+          method: put
+
+resources: 
+  Resources:
+    ContentAssetsDBTable: 
+      Type: "AWS::DynamoDB::Table" 
+      DeletionPolicy: Retain 
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: uniqueId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: uniqueId
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1 
+          WriteCapacityUnits: 1 
+        TableName: Content-Asset3
